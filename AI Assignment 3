@@ -1,0 +1,74 @@
+class FamilyTreeKB:
+    def __init__(self):
+        # Store family relationships in dictionaries
+        self.parents = {}
+        self.marriages = []
+
+    def add_parent(self, parent, child):
+        if parent not in self.parents:
+            self.parents[parent] = []
+        self.parents[parent].append(child)
+
+    def add_marriage(self, spouse1, spouse2):
+        self.marriages.append((spouse1, spouse2))
+
+    def get_children(self, parent):
+        return self.parents.get(parent, [])
+
+    def get_parents(self, child):
+        return [p for p, children in self.parents.items() if child in children]
+
+    def get_siblings(self, person):
+        parents = self.get_parents(person)
+        siblings = set()
+        for parent in parents:
+            siblings.update(self.get_children(parent))
+        siblings.discard(person)  # Remove the person from the sibling list
+        return list(siblings)
+
+    def get_grandparents(self, person):
+        parents = self.get_parents(person)
+        grandparents = set()
+        for parent in parents:
+            grandparents.update(self.get_parents(parent))
+        return list(grandparents)
+
+    def get_uncles_aunts(self, person):
+        parents = self.get_parents(person)
+        uncles_aunts = set()
+        for parent in parents:
+            uncles_aunts.update(self.get_siblings(parent))
+        return list(uncles_aunts)
+
+    def get_cousins(self, person):
+        uncles_aunts = self.get_uncles_aunts(person)
+        cousins = set()
+        for uncle_aunt in uncles_aunts:
+            cousins.update(self.get_children(uncle_aunt))
+        return list(cousins)
+
+
+# Initialize the knowledge base
+kb = FamilyTreeKB()
+
+# Parsing the family tree (Input Facts)
+kb.add_parent("John", "Alice")
+kb.add_parent("John", "Bob")
+kb.add_parent("Mary", "Alice")
+kb.add_parent("Mary", "Bob")
+kb.add_parent("Alice", "Mike")
+kb.add_parent("Tom", "Mike")
+kb.add_parent("Bob", "Emma")
+kb.add_parent("Jane", "Emma")
+
+kb.add_marriage("John", "Mary")
+kb.add_marriage("Alice", "Tom")
+kb.add_marriage("Bob", "Jane")
+
+# Query the knowledge base
+print("Children of John:", kb.get_children("John"))
+print("Parents of Mike:", kb.get_parents("Mike"))
+print("Siblings of Alice:", kb.get_siblings("Alice"))
+print("Grandparents of Emma:", kb.get_grandparents("Emma"))
+print("Aunts and Uncles of Mike:", kb.get_uncles_aunts("Mike"))
+print("Cousins of Emma:", kb.get_cousins("Emma"))
