@@ -1,0 +1,137 @@
+# Define the CSP class
+class CSP:
+    def __init__(self, variables, domains, neighbors, constraints):
+        """
+        Initialize the CSP problem.
+        :param variables: List of variables to be assigned.
+        :param domains: Dictionary mapping each variable to its domain.
+        :param neighbors: Dictionary mapping each variable to its neighbors (adjacent variables).
+        :param constraints: Function that checks if constraints between two variables are satisfied.
+        """
+        self.variables = variables
+        self.domains = domains
+        self.neighbors = neighbors
+        self.constraints = constraints
+        self.assignment = {}  # Holds the current assignment of variables
+    
+    def is_consistent(self, var, value):
+        """
+        Check if assigning 'value' to 'var' is consistent with the current assignment.
+        :param var: The variable to assign.
+        :param value: The value to assign to the variable.
+        :return: True if consistent, False otherwise.
+        """
+        for neighbor in self.neighbors[var]:
+            if neighbor in self.assignment and not self.constraints(var, value, neighbor, self.assignment[neighbor]):
+                return False
+        return True
+    
+    def assign(self, var, value):
+        """
+        Assign a value to a variable.
+        :param var: The variable to assign.
+        :param value: The value to assign to the variable.
+        """
+        self.assignment[var] = value
+    
+    def unassign(self, var):
+        """
+        Remove the assignment for a variable.
+        :param var: The variable to unassign.
+        """
+        if var in self.assignment:
+            del self.assignment[var]
+    
+    def backtracking_search(self):
+        """
+        Perform backtracking search to find a solution.
+        :return: The solution (assignment of variables), or None if no solution exists.
+        """
+        return self.backtrack()
+    
+    def backtrack(self):
+        """
+        Helper function for backtracking search.
+        :return: The solution or None.
+        """
+        # If assignment is complete, return the assignment
+        if len(self.assignment) == len(self.variables):
+            return self.assignment
+        
+        # Select an unassigned variable
+        var = self.select_unassigned_variable()
+        
+        # Try each value in the domain of the variable
+        for value in self.domains[var]:
+            if self.is_consistent(var, value):
+                self.assign(var, value)
+                
+                # Recursively call backtrack with the new assignment
+                result = self.backtrack()
+                if result:
+                    return result
+                
+                # If failure, unassign the variable
+                self.unassign(var)
+        
+        return None  # No solution found
+    
+    def select_unassigned_variable(self):
+        """
+        Select an unassigned variable. Can be modified for different heuristics.
+        :return: The selected unassigned variable.
+        """
+        for var in self.variables:
+            if var not in self.assignment:
+                return var
+
+# Define the map coloring problem
+def map_coloring_constraints(var1, value1, var2, value2):
+    """
+    Constraint function for map coloring. Ensures adjacent regions have different colors.
+    :param var1: The first variable.
+    :param value1: The value of the first variable.
+    :param var2: The second variable.
+    :param value2: The value of the second variable.
+    :return: True if the constraint is satisfied, False otherwise.
+    """
+    return value1 != value2
+
+# Define variables (regions of the map)
+variables = ['WA', 'NT', 'SA', 'Q', 'NSW', 'V', 'T']
+
+# Define the domains (possible colors)
+domains = {
+    'WA': ['Red', 'Green', 'Blue'],
+    'NT': ['Red', 'Green', 'Blue'],
+    'SA': ['Red', 'Green', 'Blue'],
+    'Q': ['Red', 'Green', 'Blue'],
+    'NSW': ['Red', 'Green', 'Blue'],
+    'V': ['Red', 'Green', 'Blue'],
+    'T': ['Red', 'Green', 'Blue'],
+}
+
+# Define neighbors (adjacent regions)
+neighbors = {
+    'WA': ['NT', 'SA'],
+    'NT': ['WA', 'SA', 'Q'],
+    'SA': ['WA', 'NT', 'Q', 'NSW', 'V'],
+    'Q': ['NT', 'SA', 'NSW'],
+    'NSW': ['Q', 'SA', 'V'],
+    'V': ['SA', 'NSW'],
+    'T': []  # Tasmania has no neighbors
+}
+
+# Create the CSP object
+csp = CSP(variables, domains, neighbors, map_coloring_constraints)
+
+# Perform backtracking search
+solution = csp.backtracking_search()
+
+# Output the solution
+if solution:
+    print("Solution found:")
+    for region, color in solution.items():
+        print(f"{region}: {color}")
+else:
+    print("No solution found.")
