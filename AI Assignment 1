@@ -1,1 +1,97 @@
+from collections import deque
+
+# Define goal state for the puzzle
+GOAL_STATE = [1, 2, 3, 4, 5, 6, 7, 8, 0]
+
+# Function to print the puzzle board
+def print_puzzle(state):
+    for i in range(0, 9, 3):
+        print(state[i:i+3])
+    print()
+
+# Function to check if a state is the goal state
+def is_goal(state):
+    return state == GOAL_STATE
+
+# Get possible moves for the blank space (0)
+def get_neighbors(state):
+    neighbors = []
+    zero_index = state.index(0)
+    row, col = divmod(zero_index, 3)
+    
+    # Define possible moves: (row_change, col_change)
+    moves = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    
+    for move in moves:
+        new_row, new_col = row + move[0], col + move[1]
+        if 0 <= new_row < 3 and 0 <= new_col < 3:
+            new_zero_index = new_row * 3 + new_col
+            new_state = state[:]
+            # Swap 0 with the neighboring element
+            new_state[zero_index], new_state[new_zero_index] = new_state[new_zero_index], new_state[zero_index]
+            neighbors.append(new_state)
+    
+    return neighbors
+
+# Depth-First Search (DFS) implementation
+def dfs(start):
+    stack = [(start, [])]  # Stack to store (current_state, path)
+    visited = set()
+    
+    while stack:
+        current_state, path = stack.pop()
+        
+        if is_goal(current_state):
+            return path + [current_state]
+        
+        visited.add(tuple(current_state))
+        
+        for neighbor in get_neighbors(current_state):
+            if tuple(neighbor) not in visited:
+                stack.append((neighbor, path + [current_state]))
+    
+    return None  # No solution found
+
+# Breadth-First Search (BFS) implementation
+def bfs(start):
+    queue = deque([(start, [])])  # Queue to store (current_state, path)
+    visited = set()
+    
+    while queue:
+        current_state, path = queue.popleft()
+        
+        if is_goal(current_state):
+            return path + [current_state]
+        
+        visited.add(tuple(current_state))
+        
+        for neighbor in get_neighbors(current_state):
+            if tuple(neighbor) not in visited:
+                queue.append((neighbor, path + [current_state]))
+    
+    return None  # No solution found
+
+# Test the algorithms
+start_state = [1, 2, 3, 4, 5, 6, 0, 7, 8]
+
+print("Initial Puzzle State:")
+print_puzzle(start_state)
+
+# Run DFS
+print("DFS Solution:")
+dfs_solution = dfs(start_state)
+if dfs_solution:
+    for state in dfs_solution:
+        print_puzzle(state)
+else:
+    print("No solution found.")
+
+# Run BFS
+print("BFS Solution:")
+bfs_solution = bfs(start_state)
+if bfs_solution:
+    for state in bfs_solution:
+        print_puzzle(state)
+else:
+    print("No solution found.")
 
